@@ -1,11 +1,21 @@
 """File to control the spooling process"""
 import time
+import math
 import numpy as np
 import RPi.GPIO as GPIO
 from gpiozero import RotaryEncoder
 
 from database import Database
 from user_interface import UserInterface
+
+def sign (value):    #function to get the sign function of a value
+        if value == 0:
+           res = 0
+        if value < 0:
+           res = -1
+        if value > 0:
+           res = 1
+        return res   
 
 
 class Spooler:
@@ -78,7 +88,7 @@ class Spooler:
 
     def rpm_to_duty_cycle(self, rpm: float) -> float:
         """Convert the RPM to duty cycle"""
-        return self.slope * rpm + self.intercept
+        return self.slope * rpm + self.intercept  
 
     def motor_control_loop(self, current_time: float) -> None:
         """Closed loop control of the DC motor for desired diameter"""
@@ -108,6 +118,8 @@ class Spooler:
             motor_ki = 0.20 #0.35 #motor_kp / motor_ti
             motor_kd = 0.05 #motor_kp * motor_td
 
+
+
             delta_time = current_time - self.previous_time
             self.previous_time = current_time
             error = target_diameter - current_diameter
@@ -120,7 +132,7 @@ class Spooler:
             setpoint_rpm = self.diameter_to_rpm(target_diameter)
             setpoint_rpm = 35 #max(min(setpoint_rpm, 0), 60)
 
-            # Control the motor
+            ### PID control for the motor
             delta_steps = self.encoder.steps - self.previous_steps
             self.previous_steps = self.encoder.steps
             current_rpm = (delta_steps / Spooler.PULSES_PER_REVOLUTION * 
@@ -135,8 +147,30 @@ class Spooler:
             self.previous_rpm = current_rpm
             output =  (motor_kp * error + motor_ki * self.integral_motor +
                         motor_kd * derivative)
+            
+            ### Super twisting Sliding modes for the motor
+
+            gain1 = 10   #gain for the sliding surface
+            alpha1 = 5  #alpha gain one for the controller
+            alpha2 = 5  #alpha gain two for the controller
+            h = 0.01    #integration step
+            flag_u = 0
+
+            if flag_u == 0:
+                u = 0
+                flag_u = 1
+            
+            surface = gain1 * error
+            du = -alpha2 * sign(surface)
+            u = u + (du * h)
+
+            output = -alpha1 * math.sqrt( abs(surface) ) * sign(surface) + u
+
+
+
             output_duty_cycle = self.rpm_to_duty_cycle(output) 
-            output_duty_cycle = max(min(output_duty_cycle, 100), 0)
+            #output_duty_cycle = max(min(output_duty_cycle, 100), 0) # original line
+            output_duty_cycle = max(min(output_duty_cycle, 60), 0)   #limited the output for testing
             self.update_duty_cycle(output_duty_cycle)
 
             # Update plots
