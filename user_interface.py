@@ -215,7 +215,8 @@ class UserInterface():
         fan_duty_cycle = QSlider(Qt.Horizontal)
         fan_duty_cycle.setMinimum(0)
         fan_duty_cycle.setMaximum(100)
-        fan_duty_cycle.setValue(30)
+        fan_duty_cycle.setValue(30)   #original line
+        #fan_duty_cycle.setValue(0)     #it was set to 0 to turn it off during testing other actuators
         fan_duty_cycle.valueChanged.connect(self.update_fan_slider_label)
 
         self.layout.addWidget(fan_duty_cycle_label, 22, 6)

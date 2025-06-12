@@ -102,10 +102,10 @@ class Spooler:
 
             motor_ku = self.gui.motor_gain.value()
             motor_tu = self.gui.motor_oscilation_period.value()
-            motor_kp = 0.3 #0.6 * motor_ku
+            motor_kp = 0.3 #0.3 #0.6 * motor_ku
             motor_ti = motor_tu / 2
             motor_td = motor_tu / 8
-            motor_ki = 0.35 #motor_kp / motor_ti
+            motor_ki = 0.20 #0.35 #motor_kp / motor_ti
             motor_kd = 0.05 #motor_kp * motor_td
 
             delta_time = current_time - self.previous_time
@@ -118,7 +118,7 @@ class Spooler:
             output = (diameter_kp * error + diameter_ki * self.integral_diameter
                       + diameter_kd * derivative)
             setpoint_rpm = self.diameter_to_rpm(target_diameter)
-            setpoint_rpm = 30 #max(min(setpoint_rpm, 0), 60)
+            setpoint_rpm = 35 #max(min(setpoint_rpm, 0), 60)
 
             # Control the motor
             delta_steps = self.encoder.steps - self.previous_steps
@@ -133,7 +133,7 @@ class Spooler:
             #derivative = (current_rpm - self.previous_rpm) / delta_time    #added by David
             self.previous_error_motor = error
             self.previous_rpm = current_rpm
-            output = (motor_kp * error + motor_ki * self.integral_motor +
+            output =  (motor_kp * error + motor_ki * self.integral_motor +
                         motor_kd * derivative)
             output_duty_cycle = self.rpm_to_duty_cycle(output) 
             output_duty_cycle = max(min(output_duty_cycle, 100), 0)
