@@ -92,6 +92,9 @@ class Spooler:
 
     def motor_control_loop(self, current_time: float) -> None:
         """Closed loop control of the DC motor for desired diameter"""
+
+        flag_u = 0
+
         if current_time - self.previous_time <= Spooler.SAMPLE_TIME:
             return
         try:
@@ -150,11 +153,10 @@ class Spooler:
             
             ### Super twisting Sliding modes for the motor
 
-            gain1 = 10   #gain for the sliding surface
-            alpha1 = 5  #alpha gain one for the controller
-            alpha2 = 5  #alpha gain two for the controller
+            gain1 = 1   #gain for the sliding surface
+            alpha1 = -10  #alpha gain one for the controller
+            alpha2 = 10  #alpha gain two for the controller
             h = 0.01    #integration step
-            flag_u = 0
 
             if flag_u == 0:
                 u = 0
@@ -165,7 +167,7 @@ class Spooler:
             u = u + (du * h)
 
             output = -alpha1 * math.sqrt( abs(surface) ) * sign(surface) + u
-
+            #output = 20
 
 
             output_duty_cycle = self.rpm_to_duty_cycle(output) 

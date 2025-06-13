@@ -1,6 +1,6 @@
 """File to setup the layout of the User Interface"""
 from typing import Tuple
-from PyQt5.QtWidgets import QApplication, QWidget, QGridLayout, QLabel, QDoubleSpinBox, QSlider, QPushButton, QMessageBox, QLineEdit, QCheckBox 
+from PyQt5.QtWidgets import QApplication, QWidget, QMainWindow, QGridLayout, QLabel, QDoubleSpinBox, QSlider, QPushButton, QMessageBox, QLineEdit, QCheckBox 
 from PyQt5.QtCore import QTimer, Qt, QThread, pyqtSignal
 from PyQt5.QtGui import QPixmap, QImage
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
@@ -8,6 +8,16 @@ from matplotlib.figure import Figure
 
 from database import Database
 from fiber_camera import FiberCamera
+
+class AdvancedWindow(QMainWindow):        #class for the windows for setting advanced controllers
+      """ This is an extra windows for setting advanced control laws"""
+      def __init__(self):
+        super().__init__()
+        self.setWindowTitle("Advanced Mode")
+        self.setGeometry (200, 200, 200, 200)
+        label = QLabel("this is the advanced mode", self)
+        label.move(50, 50)
+      
  
 class UserInterface():
     """"Graphical User Interface Class"""
@@ -270,6 +280,7 @@ class UserInterface():
         advance_mode = QPushButton("Advance Mode")
         advance_mode.setStyleSheet(font_style)
         advance_mode.clicked.connect(self.set_advance_mode)  #it will be implemented in awhile
+        self.advanced_mode = None
         
         
         download_csv = QPushButton("Download CSV File")
@@ -364,14 +375,19 @@ class UserInterface():
                                 "Calibration", "Camera calibration completed. "
                                 "Please restart the program.")   
          
-    def set_advance_mode(self) -> None:
+    def set_advance_mode(self) -> None:   
         """Call advance mode"""
-        QMessageBox.information(self.app.activeWindow(), "Advance Mode",
-                                "Advance Mode will be available soon.")
-        self.fiber_camera.calibrate()
-        QMessageBox.information(self.app.activeWindow(),
-                                "Advance Mode", "this?. "
-                                "and this?")    
+        #calibrate_motor = QPushButton("Calibrate motor")
+        if self.advanced_mode is None:
+            self.advanced_mode = AdvancedWindow()
+        self.advanced_mode.show()
+
+        #QMessageBox.information(self.app.activeWindow(), "Advance Mode",
+                                #"Advance Mode will be available soon.")
+        #self.fiber_camera.calibrate()
+        #QMessageBox.information(self.app.activeWindow(),
+                             #   "Advance Mode", "this?. "
+                             #   "and this?")    
 
 
 
