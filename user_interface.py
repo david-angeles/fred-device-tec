@@ -14,9 +14,37 @@ class AdvancedWindow(QMainWindow):        #class for the windows for setting adv
       def __init__(self):
         super().__init__()
         self.setWindowTitle("Advanced Mode")
-        self.setGeometry (200, 200, 200, 200)
-        label = QLabel("this is the advanced mode", self)
-        label.move(50, 50)
+        self.setGeometry (800, 800, 1550, 800)
+        #label = QLabel("this is the advanced mode", self)
+        #label.move(10, 20)
+      def add_buttons(self):
+        """Add buttons to the layout"""
+        font_style = "background-color: green; font-size: 14px; font-weight: bold;"
+        pid_control = QPushButton("PID")
+        pid_control.setStyleSheet(font_style)
+        #start_device.clicked.connect(self.set_start_device)
+
+        self.layout.addWidget(pid_control, 1, 0)
+
+      def add_plots(self):
+        """Add plots to the layout"""
+        font_style = "font-size: 16px; font-weight: bold;"
+        binary_checkbox = QCheckBox("Binary")
+        binary_checkbox.setStyleSheet(font_style)
+        #binary_checkbox.stateChanged.connect(checkbox_state_changed) TODO
+
+        motor_plot = self.Plot("DC Spooling Motor", "Speed (RPM)")
+        temperature_plot = self.Plot("Temperature", "Temperature (C)")
+        diameter_plot = self.Plot("Diameter", "Diameter (mm)")
+
+        self.layout.addWidget(binary_checkbox, 10, 1)
+        self.layout.addWidget(diameter_plot, 2, 0, 8, 4)
+        self.layout.addWidget(motor_plot, 11, 0, 8, 4)
+        self.layout.addWidget(temperature_plot, 19, 0, 8, 4)
+
+        return motor_plot, temperature_plot, diameter_plot
+
+
       
  
 class UserInterface():
