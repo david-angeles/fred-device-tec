@@ -13,7 +13,7 @@ class AdvancedWindow(QMainWindow):        #class for the windows for setting adv
       """ This is an extra windows for setting advanced control laws"""
       def __init__(self):
         super().__init__()
-        self.setWindowTitle("Advanced Mode")
+        self.setWindowTitle("Control Mode")   #before Advance Mode
         self.setGeometry (800, 800, 1550, 800)
         #label = QLabel("this is the advanced mode", self)
         #label.move(10, 20)
@@ -305,7 +305,7 @@ class UserInterface():
         calibrate_camera.clicked.connect(self.set_calibrate_camera)
              
              #David added the advance mode
-        advance_mode = QPushButton("Advance Mode")
+        advance_mode = QPushButton("Control Mode")  #before Advance Mode
         advance_mode.setStyleSheet(font_style)
         advance_mode.clicked.connect(self.set_advance_mode)  #it will be implemented in awhile
         self.advanced_mode = None
@@ -406,16 +406,16 @@ class UserInterface():
     def set_advance_mode(self) -> None:   
         """Call advance mode"""
         #calibrate_motor = QPushButton("Calibrate motor")
-        if self.advanced_mode is None:
-            self.advanced_mode = AdvancedWindow()
-        self.advanced_mode.show()
+        #if self.advanced_mode is None:
+        #    self.advanced_mode = AdvancedWindow()
+        #self.advanced_mode.show()
 
-        #QMessageBox.information(self.app.activeWindow(), "Advance Mode",
-                                #"Advance Mode will be available soon.")
-        #self.fiber_camera.calibrate()
-        #QMessageBox.information(self.app.activeWindow(),
-                             #   "Advance Mode", "this?. "
-                             #   "and this?")    
+        QMessageBox.information(self.app.activeWindow(), "Control Mode",
+                                "Control Mode will be available soon.")
+        self.fiber_camera.calibrate()
+        QMessageBox.information(self.app.activeWindow(),
+                                "Advance Mode", "this?. "
+                                "and this?")    
 
 
 
