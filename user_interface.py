@@ -1,50 +1,15 @@
 """File to setup the layout of the User Interface"""
 from typing import Tuple
-from PyQt5.QtWidgets import QApplication, QWidget, QMainWindow, QGridLayout, QLabel, QDoubleSpinBox, QSlider, QPushButton, QMessageBox, QLineEdit, QCheckBox 
+from PyQt5.QtWidgets import QApplication, QWidget, QGridLayout, QLabel, QDoubleSpinBox, QSlider, QPushButton, QMessageBox, QLineEdit, QCheckBox 
 from PyQt5.QtCore import QTimer, Qt, QThread, pyqtSignal
 from PyQt5.QtGui import QPixmap, QImage
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
 
+from control_mode import ControlWindow    #it imports the control mode window
+
 from database import Database
 from fiber_camera import FiberCamera
-
-class AdvancedWindow(QMainWindow):        #class for the windows for setting advanced controllers
-      """ This is an extra windows for setting advanced control laws"""
-      def __init__(self):
-        super().__init__()
-        self.setWindowTitle("Control Mode")   #before Advance Mode
-        self.setGeometry (800, 800, 1550, 800)
-        #label = QLabel("this is the advanced mode", self)
-        #label.move(10, 20)
-      def add_buttons(self):
-        """Add buttons to the layout"""
-        font_style = "background-color: green; font-size: 14px; font-weight: bold;"
-        pid_control = QPushButton("PID")
-        pid_control.setStyleSheet(font_style)
-        #start_device.clicked.connect(self.set_start_device)
-
-        self.layout.addWidget(pid_control, 1, 0)
-
-      def add_plots(self):
-        """Add plots to the layout"""
-        font_style = "font-size: 16px; font-weight: bold;"
-        binary_checkbox = QCheckBox("Binary")
-        binary_checkbox.setStyleSheet(font_style)
-        #binary_checkbox.stateChanged.connect(checkbox_state_changed) TODO
-
-        motor_plot = self.Plot("DC Spooling Motor", "Speed (RPM)")
-        temperature_plot = self.Plot("Temperature", "Temperature (C)")
-        diameter_plot = self.Plot("Diameter", "Diameter (mm)")
-
-        self.layout.addWidget(binary_checkbox, 10, 1)
-        self.layout.addWidget(diameter_plot, 2, 0, 8, 4)
-        self.layout.addWidget(motor_plot, 11, 0, 8, 4)
-        self.layout.addWidget(temperature_plot, 19, 0, 8, 4)
-
-        return motor_plot, temperature_plot, diameter_plot
-
-
       
  
 class UserInterface():
@@ -304,11 +269,11 @@ class UserInterface():
         calibrate_camera.setStyleSheet(font_style)
         calibrate_camera.clicked.connect(self.set_calibrate_camera)
              
-             #David added the advance mode
-        advance_mode = QPushButton("Control Mode")  #before Advance Mode
-        advance_mode.setStyleSheet(font_style)
-        advance_mode.clicked.connect(self.set_advance_mode)  #it will be implemented in awhile
-        self.advanced_mode = None
+             #David added the control mode
+        control_mode = QPushButton("Control Mode")  #button for control mode
+        control_mode.setStyleSheet(font_style)
+        control_mode.clicked.connect(self.set_control_mode)  #it will be implemented in awhile
+        self.control_mode = None
         
         
         download_csv = QPushButton("Download CSV File")
@@ -323,7 +288,7 @@ class UserInterface():
         self.layout.addWidget(start_device, 1, 0)
         self.layout.addWidget(calibrate_motor, 1, 1)
         self.layout.addWidget(calibrate_camera, 1, 2)
-        self.layout.addWidget(advance_mode, 1, 3)   #David added the advance mode
+        self.layout.addWidget(control_mode, 1, 3)   #David added the control mode
         self.layout.addWidget(download_csv, 24, 6)
         #new
         self.layout.addWidget(heater_open_loop, 2, 9)
@@ -403,19 +368,19 @@ class UserInterface():
                                 "Calibration", "Camera calibration completed. "
                                 "Please restart the program.")   
          
-    def set_advance_mode(self) -> None:   
-        """Call advance mode"""
+    def set_control_mode(self) -> None:   
+        """Call control mode"""
         #calibrate_motor = QPushButton("Calibrate motor")
-        #if self.advanced_mode is None:
-        #    self.advanced_mode = AdvancedWindow()
-        #self.advanced_mode.show()
+        if self.control_mode is None:
+            self.control_mode = ControlWindow()
+        self.control_mode.window.show()
 
-        QMessageBox.information(self.app.activeWindow(), "Control Mode",
-                                "Control Mode will be available soon.")
-        self.fiber_camera.calibrate()
-        QMessageBox.information(self.app.activeWindow(),
-                                "Advance Mode", "this?. "
-                                "and this?")    
+        #QMessageBox.information(self.app.activeWindow(), "Control Mode",
+        #                        "Control Mode will be available soon.")
+        #self.fiber_camera.calibrate()
+        #QMessageBox.information(self.app.activeWindow(),
+        #                        "Advance Mode", "this?. "
+        #                        "and this?")    
 
 
 
