@@ -372,7 +372,7 @@ class UserInterface():
         """Call control mode"""
         #calibrate_motor = QPushButton("Calibrate motor")
         if self.control_mode is None:
-            self.control_mode = ControlWindow()
+            self.control_mode = ControlWindow(self)
         self.control_mode.show()
         #self.window.show()
 
