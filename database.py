@@ -22,6 +22,7 @@ class Database():
     spooler_delta_time = []
     spooler_setpoint = []
     spooler_rpm = []
+    spooler_pwm = []       #added pwm spooler motor values
     spooler_gain = []
     spooler_oscilation_period = []
 
@@ -88,7 +89,7 @@ class Database():
             # Motor Table
             writer.writerow(["MOTOR DATA"])
             writer.writerow(["Elapsed Time (s)", "Extruder RPM",
-                            "Spooler setpoint (RPM)", "Spooler RPM",
+                            "Spooler setpoint (RPM)", "Spooler RPM", "Spooler PWM",  #to write its names in the DB
                             "Spooler gain", "Spooler oscilation period"])
             
             motor_samples = len([x for x in cls.spooler_rpm if x != ""])
@@ -101,6 +102,7 @@ class Database():
                           cls.extruder_rpm[i] if i < len(cls.extruder_rpm) else "",
                           cls.spooler_setpoint[i] if i < len(cls.spooler_setpoint) else "",
                           cls.spooler_rpm[i] if i < len(cls.spooler_rpm) else "",
+                          cls.spooler_pwm[i] if i < len(cls.spooler_pwm) else "",   #to write the pwm values in the DB 
                           cls.spooler_gain[i] if i < len(cls.spooler_gain) else "",
                           cls.spooler_oscilation_period[i] if i < len(cls.spooler_oscilation_period) else ""]
                     writer.writerow(row)

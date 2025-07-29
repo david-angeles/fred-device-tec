@@ -95,8 +95,8 @@ class Spooler:
 
         flag_u = 0
 
-        if current_time - self.previous_time <= Spooler.SAMPLE_TIME:
-            return
+        #if current_time - self.previous_time <= Spooler.SAMPLE_TIME:
+        #    return
         try:
             if not self.motor_calibration:
                 self.gui.show_message("Motor calibration data not found",
@@ -115,11 +115,11 @@ class Spooler:
 
             motor_ku = self.gui.motor_gain.value()
             motor_tu = self.gui.motor_oscilation_period.value()
-            motor_kp = 0.3 #0.3 #0.6 * motor_ku
+            motor_kp = 0.1537 #0.3 #0.3 #0.6 * motor_ku
             motor_ti = motor_tu / 2
             motor_td = motor_tu / 8
-            motor_ki = 0.20 #0.35 #motor_kp / motor_ti
-            motor_kd = 0.05 #motor_kp * motor_td
+            motor_ki = 0.4597 #0.20 #0.35 #motor_kp / motor_ti
+            motor_kd = 0.02 #0.05 #motor_kp * motor_td
 
 
 
@@ -166,13 +166,39 @@ class Spooler:
             du = -alpha2 * sign(surface)
             u = u + (du * h)
 
-            output = -alpha1 * math.sqrt( abs(surface) ) * sign(surface) + u
-            #output = 20
+            #output = -alpha1 * math.sqrt( abs(surface) ) * sign(surface) + u
+            #output = 30
 
+            ####################################################
+            ########TEST TO IDENTIFICATION SYSTEM #############
+            #if current_time < 30:
+            #    output = 25
+            #if current_time < 60 and current_time >= 30:
+            #    output = 35
+            #if current_time < 90 and current_time >= 60:
+            #    output = 50
+            #if current_time < 120 and current_time >= 90:
+            #    output = 70     
+            #if current_time < 150 and current_time >= 120:
+            #    output = 90 
+            #if current_time < 180 and current_time >= 150:
+            #    output = 100  
+            #if current_time < 260 and current_time >= 180:
+            #    output = 100-current_time+180
+            #if current_time >= 260:
+            #    output = current_time-250 
+            ###################################################
+            ####### IDENTIFICATION SYSTEM 2 ###########
+            #if current_time > 30:
+            #    output = 120
+            #else :
+            #    output = 0 
 
+            
             output_duty_cycle = self.rpm_to_duty_cycle(output) 
-            #output_duty_cycle = max(min(output_duty_cycle, 100), 0) # original line
-            output_duty_cycle = max(min(output_duty_cycle, 60), 0)   #limited the output for testing
+            output_duty_cycle = max(min(output_duty_cycle, 100), 0) # original line
+            current_pwm = output_duty_cycle
+            #output_duty_cycle = max(min(output_duty_cycle, 60), 0)   #limited the output for testing
             self.update_duty_cycle(output_duty_cycle)
 
             # Update plots
@@ -185,6 +211,7 @@ class Spooler:
             Database.spooler_delta_time.append(delta_time)
             Database.spooler_setpoint.append(setpoint_rpm)
             Database.spooler_rpm.append(current_rpm)
+            Database.spooler_pwm.append(current_pwm)
             Database.spooler_gain.append(diameter_ku)
             Database.spooler_oscilation_period.append(diameter_tu)
         except Exception as e:

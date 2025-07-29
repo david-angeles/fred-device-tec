@@ -42,7 +42,7 @@ def hardware_control(gui: UserInterface) -> None:
                 if gui.spooling_control_state:
                     spooler.motor_control_loop(current_time)
                 fan.control_loop()
-            time.sleep(0.05)
+            time.sleep(0.01) #0.05
         except Exception as e:
             print(f"Error in hardware control loop: {e}")
             gui.show_message("Error in hardware control loop",
@@ -54,7 +54,7 @@ def hardware_control(gui: UserInterface) -> None:
 if __name__ == "__main__":
     print("Starting FrED Device...")
     ui = UserInterface()
-    time.sleep(2)
+    time.sleep(0.1) #2
     hardware_thread = threading.Thread(target=hardware_control, args=(ui,))
     hardware_thread.start()
     threading.Lock()
