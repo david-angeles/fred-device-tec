@@ -1,7 +1,5 @@
 ######### Program to control the FrED's DC motor ########
 
-
-
 import os
 import cv2
 import time
@@ -17,6 +15,7 @@ import matplotlib.pyplot as plt
 import RPi.GPIO as GPIO
 import adafruit_mcp3xxx.mcp3008 as MCP
 GPIO.setmode(GPIO.BCM)
+import FrED_functions
 
 from time import sleep
 #from gpiozero import Motor
@@ -64,6 +63,16 @@ motor_output = GPIO.PWM(dcmotorPin, dcFreq)
 
 frame_count = 0
 
+########### variables ###########
+rpm_reference = 30  # desired motor speed
+previous_time = 0
+previous_steps = 0
+tm = 0.01           # Sample time
+match_time = 0.010
+PWM_motor = 0       #DC motor PWM
+        
+muestra = 1
+
 ########### Initialing lists ##########
 time_data = []
 rpm_data = []
@@ -79,23 +88,7 @@ ax.legend()
 ax.set_title('DC Motor without PID')
 
 ###############################################
-########## declarations of functions ##########
-
-def motor_speed (current_time, previous_time, previous_steps):
-    rpm = ((encoder.steps - previous_steps) * 60) / ((current_time - previous_time) * 1176)
-    #previous_steps = encoder.steps
-    return rpm 
-
-def save_data ():
-    with open("FrED_data.txt","a") as archivo:
-        archivo.write("time\trpm\t\tvolt\tpwm\n")
-        size = len(time_data)
-        for i in range(size-1):
-            a = time_data[i]
-            b = rpm_data[i]
-            c = motor_voltage_data[i]
-            d = PWM_motor_data[i]
-            archivo.write(f"{a}\t{b}\t\t{c}\t{d}\n")
+########## declarations of functions ########## 
 
 def ploting ():
     # Update the plot
@@ -108,16 +101,9 @@ def ploting ():
     plt.draw()
     plt.pause(0.01)
 
-########### variables ###########
-rpm_reference = 30  # desired motor speed
-previous_time = 0
-previous_steps = 0
-tm = 0.01           # Sample time
-match_time = 0.010
-PWM_motor = 0       #DC motor PWM
-        
-
-muestra = 1
+def plotD ():
+    plt.plot(time_data, rpm_data)
+    plt.show()
 
 ########## starting to count time ##########
 tstart = time.perf_counter()   #start internal clock
@@ -127,7 +113,9 @@ try:
     #Loop Execution
     while True:
         current_time = time.perf_counter() - tstart
-        rpm = motor_speed (current_time, previous_time, previous_steps) #measure rpm
+        encoder_steps = encoder.steps
+        rpm = FrED_functions.motor_speed (current_time, previous_time, 
+                                          previous_steps, encoder_steps) #measure rpm
         previous_time = current_time
         previous_steps = encoder.steps
         
@@ -136,7 +124,8 @@ try:
         #ds = encoder.steps - oldpos
         #rpm = ds/ppr/dt*60
         if current_time>=muestra:
-            print("DC Speed = {:0.2f} rpm".format(rpm))
+            #print("DC Speed = {:0.2f} rpm".format(rpm))
+            print("DC Speed =",rpm)
             print("time =",current_time)
             print("pasos =",encoder.steps)
             muestra = muestra + 1
@@ -144,53 +133,23 @@ try:
         timeD = time.time() - initial_time
         print("timeD =",timeD)
 
-        
-        oldtime = time.perf_counter()
-        oldpos = encoder.steps
-
-        ####################################################
-        ########TEST TO IDENTIFICATION SYSTEM #############
-        #if current_time < 30:
-        #    output = 25
-        #if current_time < 60 and current_time >= 30:
-        #    output = 35
-        #if current_time < 90 and current_time >= 60:
-        #    output = 50
-        #if current_time < 120 and current_time >= 90:
-        #    output = 70     
-        #if current_time < 150 and current_time >= 120:
-        #    output = 90 
-        #if current_time < 180 and current_time >= 150:
-        #    output = 100  
-        #if current_time < 260 and current_time >= 180:
-        #    output = 100-current_time+180
-        #if current_time >= 260:
-        #    output = current_time-250
-        #if current_time >= 340:
-        #    output = 100 
-        ###################################################
-        ####### IDENTIFICATION SYSTEM 2 ###########
-        #if current_time > 30:
-        #    output = 120
-        #else :
-        #    output = 0 
-
         PWM_motor = 100
         motor_output.start(PWM_motor)   #sending PWM to the motor
 
         #ret, frame = cap.read()
 
-        #ploting ()
+        #ploting()
+        #plotD()
 
         ########### convertion PWM to votage ##########
         motor_voltage = (12 * PWM_motor) / 100
 
         ########### save data to the lists #########
-        time_data.append(round(current_time, 4))
-        rpm_data.append(round(rpm, 4))
+        time_data.append(round(current_time, 2))
+        rpm_data.append(round(rpm, 2))
         rpm_ref_data.append(rpm_reference)
-        PWM_motor_data.append(PWM_motor)
-        motor_voltage_data.append(motor_voltage)
+        PWM_motor_data.append(round(PWM_motor,2))
+        motor_voltage_data.append(round(motor_voltage,2))
 
         ########## to have a consistent sample time ##########
         wait = max(0, match_time - current_time)
@@ -199,12 +158,14 @@ try:
 except KeyboardInterrupt:
     print ("\nCode Stopped\n")
     ########## save data in a txt file ##########
-    save_data ()
+    FrED_functions.save_data(time_data, rpm_data, motor_voltage_data,
+                              PWM_motor_data)
     print ("Data saved in FrED_data.txt file\n\n")
+    #plotD ()
     #print (time_data)
     
 finally:
     GPIO.cleanup()
-    cap.release()
-    cv2.destroyAllWindows()
+    #cap.release()
+    #cv2.destroyAllWindows()
 
