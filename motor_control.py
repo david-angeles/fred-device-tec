@@ -24,16 +24,16 @@ from adafruit_mcp3xxx.analog_in import AnalogIn
 
 
 ########## GPIO Pin Definitions ##########
-encoder_1 = 24         # DC motor encoder input pin 1
-encoder_2 = 23         # DC motor encoder input pin 2
-dcmotorPin = 5         # DC motor PWM output pin
+encoder_A = 24         # DC motor encoder input pin 1
+encoder_B = 23         # DC motor encoder input pin 2
+motorPin = 5         # DC motor PWM output pin
 
 ########## Initialise GPIO ##########
 GPIO.setwarnings(False)
-GPIO.setup(dcmotorPin, GPIO.OUT)
+GPIO.setup(motorPin, GPIO.OUT)
 
 ########## Initialise DC motor encoder ##########
-encoder = RotaryEncoder(encoder_1, encoder_2, max_steps=0)
+encoder = RotaryEncoder(encoder_A, encoder_B, max_steps=0)
 
 # Create the SPI bus
 spi = busio.SPI(clock=board.SCK, MISO=board.MISO, MOSI=board.MOSI)
@@ -59,7 +59,7 @@ oldtime = 0                    #old DC time
 oldpos = 0                     #old DC position
 lasttime = 0                   #old stepper time
 #Start DC motor
-motor_output = GPIO.PWM(dcmotorPin, dcFreq)
+motor_output = GPIO.PWM(motorPin, dcFreq)
 
 frame_count = 0
 
@@ -67,8 +67,9 @@ frame_count = 0
 rpm_reference = 30  # desired motor speed
 previous_time = 0
 previous_steps = 0
-tm = 0.01           # Sample time
-match_time = 0.010
+previous_rpm = 0
+tm = 0.02           # Sample time
+match_time = 0.020
 PWM_motor = 0       #DC motor PWM
         
 muestra = 1
@@ -76,6 +77,7 @@ muestra = 1
 ########### Initialing lists ##########
 time_data = []
 rpm_data = []
+rpm_raw_data = []
 rpm_ref_data = []
 PWM_motor_data = []
 motor_voltage_data = []
@@ -113,27 +115,26 @@ try:
     #Loop Execution
     while True:
         current_time = time.perf_counter() - tstart
+        
         encoder_steps = encoder.steps
-        rpm = FrED_functions.motor_speed (current_time, previous_time, 
+        rpm_raw = FrED_functions.motor_speed (current_time, previous_time, 
                                           previous_steps, encoder_steps) #measure rpm
         previous_time = current_time
         previous_steps = encoder.steps
+
+        rpm = FrED_functions.filter (rpm_raw, previous_rpm)
+        previous_rpm = rpm
         
 
         #dt = time.perf_counter()-oldtime
         #ds = encoder.steps - oldpos
         #rpm = ds/ppr/dt*60
-        if current_time>=muestra:
-            #print("DC Speed = {:0.2f} rpm".format(rpm))
-            print("DC Speed =",rpm)
-            print("time =",current_time)
-            print("pasos =",encoder.steps)
-            muestra = muestra + 1
-        print("time =",current_time)
-        timeD = time.time() - initial_time
-        print("timeD =",timeD)
 
-        PWM_motor = 100
+        #PWM_motor = 100
+        opcion_LS = 6
+        PWM_motor = FrED_functions.least_square (current_time, opcion_LS)
+        PWM_motor = max(min(PWM_motor, 100), 0)
+        #PWM_motor = 50
         motor_output.start(PWM_motor)   #sending PWM to the motor
 
         #ret, frame = cap.read()
@@ -141,12 +142,25 @@ try:
         #ploting()
         #plotD()
 
+        if current_time>=muestra:
+            #print("DC Speed = {:0.2f} rpm".format(rpm))
+            #print("DC Speed =",rpm)
+            print("time =",current_time)
+            print("Speed =",rpm)
+            print("PWM =",PWM_motor)
+            #print("pasos =",encoder.steps)
+            muestra = muestra + 1
+        #print("time =",current_time)
+        #timeD = time.time() - initial_time
+        #print("timeD =",timeD)
+
         ########### convertion PWM to votage ##########
         motor_voltage = (12 * PWM_motor) / 100
 
         ########### save data to the lists #########
         time_data.append(round(current_time, 2))
         rpm_data.append(round(rpm, 2))
+        rpm_raw_data.append(round(rpm_raw, 2))
         rpm_ref_data.append(rpm_reference)
         PWM_motor_data.append(round(PWM_motor,2))
         motor_voltage_data.append(round(motor_voltage,2))
@@ -159,10 +173,9 @@ except KeyboardInterrupt:
     print ("\nCode Stopped\n")
     ########## save data in a txt file ##########
     FrED_functions.save_data(time_data, rpm_data, motor_voltage_data,
-                              PWM_motor_data)
+                              PWM_motor_data, rpm_raw_data)
     print ("Data saved in FrED_data.txt file\n\n")
     #plotD ()
-    #print (time_data)
     
 finally:
     GPIO.cleanup()
