@@ -12,18 +12,20 @@ def filter (rpm_raw, previous_rpm):
     rpm = alpha * rpm_raw + (1 - alpha) * previous_rpm
     return rpm 
 
-def PID (rpm_reference, rpm, previous_PIDrpm, error_sum, current_time, previous_PIDtime):
-    kp = 0.1537
-    ki = 0.4597
-    kd = 0.02
+def PID (rpm_reference, rpm, previous_PIDerror, error_sum, current_time, previous_PIDtime):
+    kp = 0.4152 #0.1537
+    ki = 10.1415 #0.4597
+    kd = 0.0335 #0.02
 
     delta_time = current_time- previous_PIDtime
     error = rpm_reference-rpm
-    error_d = (rpm - previous_PIDrpm) / delta_time
+    error_d = (error - previous_PIDerror) / delta_time
     error_i = (error * delta_time) + error_sum
 
     pid = kp * error + ki * error_i + kd * error_d
-    return pid, error_i
+
+    PIDerror = error
+    return pid, error_i, PIDerror
 
 def PI (rpm_reference, rpm, error_sum, current_time, previous_PIDtime):
     kp = 0.1537

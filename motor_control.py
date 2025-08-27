@@ -69,7 +69,8 @@ previous_time = 0
 previous_PIDtime = 0
 previous_steps = 0
 previous_rpm = 0
-previous_PIDrpm = 0
+previous_PIDerror = rpm_reference #se iguala a la referencia para 
+                                  #tener derivada del error cero y evitar "picos" artificales 
 tm = 0.02           # Sample time
 match_time = 0.020
 PWM_motor = 0       #DC motor PWM
@@ -132,14 +133,14 @@ try:
         rpm = FrED_functions.filter (rpm_raw, previous_rpm)
         previous_rpm = rpm
         
-        motor_input, error_i = FrED_functions.PID (rpm_reference, rpm, previous_PIDrpm, 
+        motor_input, error_i, PIDerror = FrED_functions.PID (rpm_reference, rpm, previous_PIDerror, 
                                           error_sum, current_time, previous_PIDtime)
         #motor_input, error_i = FrED_functions.PI (rpm_reference, rpm, error_sum, 
         #                                           current_time, previous_PIDtime)
         #motor_input, error_i = FrED_functions.STSM (rpm_reference, rpm, u, error_sum, 
         #                                           current_time, previous_PIDtime)
         previous_PIDtime = current_time
-        previous_PIDrpm = rpm
+        previous_PIDerror = PIDerror
         error_sum = error_i
 
         #dt = time.perf_counter()-oldtime
@@ -155,11 +156,13 @@ try:
         #PWM_motor = 50
         #PWM_motor = 0
         #motor_output.ChangeDutyCycle(motor_input) #sending PWM to the motor
+        #if PWM_motor_data == []:
+        #    PWM_motor = 0
         motor_output.ChangeDutyCycle(PWM_motor)
 
         #ret, frame = cap.read()
 
-        ploting()
+        #ploting()
         #plotD()
 
         if current_time>=muestra:
